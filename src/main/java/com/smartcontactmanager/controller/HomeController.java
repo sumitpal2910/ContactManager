@@ -1,6 +1,7 @@
 package com.smartcontactmanager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -21,6 +22,9 @@ public class HomeController {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	public HomeController(UserRepository userRepository) {
 		this.userRepository = userRepository;
@@ -46,6 +50,13 @@ public class HomeController {
 		return "signup";
 	}
 
+	@RequestMapping("/signin")
+	public String signin(ModelMap model) {
+		model.put("title", "Singin - Smart Contact Manager");
+		return "login";
+	}
+
+	
 	@PostMapping("/do-register")
 	public String registerUser(@Valid @ModelAttribute("user") User user, BindingResult result ,
 			@RequestParam(value = "terms", defaultValue = "false") boolean terms, ModelMap model, HttpSession session
@@ -63,7 +74,8 @@ public class HomeController {
 			}
 			
 			user.setActive(true);
-			user.setRole("USER");
+			user.setRole("ROLE_USER");
+			user.setPassword(passwordEncoder.encode(user.getPassword()));
 			User savedUser = userRepository.save(user);
 
 			model.put("user", new User());
